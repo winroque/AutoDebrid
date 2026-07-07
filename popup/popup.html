@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AutoDebrid</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <h1>⚡ AutoDebrid</h1>
+    <span id="account-badge" class="hidden"></span>
+  </header>
+
+  <!-- Tela de configuração da chave -->
+  <section id="setup" class="hidden">
+    <p>Cole sua chave de API do Real-Debrid. Você encontra em
+      <a href="https://real-debrid.com/apitoken" target="_blank" rel="noopener">real-debrid.com/apitoken</a>.
+    </p>
+    <input type="password" id="token-input" placeholder="Chave de API" autocomplete="off">
+    <button id="save-token" class="primary">Salvar e validar</button>
+    <p id="setup-status" class="status"></p>
+  </section>
+
+  <!-- Tela principal -->
+  <section id="main" class="hidden">
+    <div class="settings">
+      <label><input type="checkbox" id="opt-intercept"> Debridar automaticamente ao clicar em links</label>
+      <label><input type="checkbox" id="opt-badges"> Mostrar botão ⚡ ao lado dos links</label>
+      <label><input type="checkbox" id="opt-newtab"> Abrir link debridado em nova aba</label>
+    </div>
+
+    <div class="page-links">
+      <div class="page-links-header">
+        <h2>Links nesta página</h2>
+        <button id="refresh-links" title="Recarregar lista">↻</button>
+      </div>
+      <p id="links-status" class="status"></p>
+      <button id="try-all" class="primary hidden">🔁 Testar mirrors (usa o primeiro que funcionar)</button>
+      <ul id="links-list"></ul>
+    </div>
+
+    <div id="result" class="result hidden">
+      <h2>✅ Link pronto</h2>
+      <p id="result-name" class="result-name"></p>
+      <p id="result-meta" class="result-meta"></p>
+      <div class="result-actions">
+        <a id="result-open" class="button primary" target="_blank" rel="noopener">Abrir / Baixar</a>
+        <button id="result-copy">Copiar link</button>
+      </div>
+    </div>
+
+    <footer>
+      <button id="change-token" class="link-button">Alterar chave de API</button>
+    </footer>
+  </section>
+
+  <script src="popup.js"></script>
+</body>
+</html>

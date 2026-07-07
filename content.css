@@ -1,0 +1,52 @@
+/* AutoDebrid — estilos injetados nas páginas */
+
+.autodebrid-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 5px;
+  font-size: 12px;
+  line-height: 1.4;
+  vertical-align: baseline;
+  border-radius: 6px;
+  background: #16a34a;
+  color: #fff;
+  cursor: pointer;
+  user-select: none;
+  font-family: system-ui, sans-serif;
+  text-decoration: none;
+}
+
+.autodebrid-badge:hover {
+  background: #15803d;
+}
+
+.autodebrid-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translate(-50%, 20px);
+  max-width: min(92vw, 480px);
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: #1f2937;
+  color: #f9fafb;
+  font: 14px/1.4 system-ui, sans-serif;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 2147483647;
+}
+
+.autodebrid-toast-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.autodebrid-toast[data-kind='success'] {
+  background: #14532d;
+}
+
+.autodebrid-toast[data-kind='error'] {
+  background: #7f1d1d;
+}
