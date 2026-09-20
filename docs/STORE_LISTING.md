@@ -83,7 +83,7 @@ have the right to access.
 
 ```
 Convert file-hoster download links on web pages into direct download links
-using the user's own Real-Debrid account.
+using the user's own debrid account (Real-Debrid or TorBox).
 ```
 
 ## Justificativas de permissões / Permission justifications
@@ -94,6 +94,7 @@ using the user's own Real-Debrid account.
 | `clipboardWrite` | Copies the generated direct-download link to the clipboard so the user can paste it into a download manager. Only used after an explicit user action. |
 | `contextMenus` | Adds a single "Unrestrict link with Real-Debrid" item to the right-click menu of links, as an alternative way to trigger the extension's single purpose. |
 | `https://api.real-debrid.com/*` | The extension's core function: calling the official Real-Debrid API to convert a link and to fetch the list of supported hosters. |
+| `https://api.torbox.app/*` | Same purpose for the TorBox debrid service, which the user can pick instead of Real-Debrid: validate the key, fetch the supported-hoster list, create the web download and request the download link. |
 | `<all_urls>` (host + content script) | The extension must scan link URLs on any page the user visits to detect links pointing to supported file hosters, because download links appear on arbitrary websites (forums, blogs, link-protector pages). Only link URLs are read, locally; no page content ever leaves the browser. A link is sent to the Real-Debrid API only when the user explicitly asks to convert it. |
 
 ## Uso de código remoto / Remote code

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extName__",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "__MSG_extDescription__",
   "default_locale": "en",
   "permissions": [
@@ -11,6 +11,7 @@
   ],
   "host_permissions": [
     "https://api.real-debrid.com/*",
+    "https://api.torbox.app/*",
     "<all_urls>"
   ],
   "background": {

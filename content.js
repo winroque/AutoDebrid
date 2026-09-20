@@ -213,16 +213,30 @@
     if (typeof items.intercept === 'boolean') settings.intercept = items.intercept;
     if (typeof items.badges === 'boolean') settings.badges = items.badges;
     if (typeof items.newTab === 'boolean') settings.newTab = items.newTab;
-    hasToken = !!(items.apiToken && items.apiToken.trim());
   }
 
-  chrome.storage.onChanged.addListener((changes, area) => {
+  // O service worker é a fonte da verdade: devolve só os domínios habilitados
+  // do serviço de debrid ativo e diz se há chave configurada para ele.
+  async function loadDomains() {
+    const res = await send({ type: 'getDomains' });
+    if (!res.ok || !Array.isArray(res.domains)) return false;
+    domainSet = new Set(res.domains);
+    hasToken = !!res.hasToken;
+    return true;
+  }
+
+  // Mudanças que alteram quais links são "suportados": serviço, chaves, hosters desligados.
+  const DOMAIN_KEYS = ['provider', 'apiToken', 'torboxToken', 'disabledHosts'];
+
+  chrome.storage.onChanged.addListener(async (changes, area) => {
     if (area !== 'sync') return;
     const flat = {};
     for (const [k, v] of Object.entries(changes)) flat[k] = v.newValue;
     const badgesBefore = settings.badges;
     applyStoredSettings(flat);
-    if (badgesBefore !== settings.badges) {
+    const domainsChanged = DOMAIN_KEYS.some((k) => k in changes);
+    if (domainsChanged) await loadDomains();
+    if (domainsChanged || badgesBefore !== settings.badges) {
       clearBadges();
       scan();
     }
@@ -231,12 +245,10 @@
   // ---------- inicialização ----------
 
   async function init() {
-    const items = await chrome.storage.sync.get(['apiToken', 'intercept', 'badges', 'newTab']);
+    const items = await chrome.storage.sync.get(['intercept', 'badges', 'newTab']);
     applyStoredSettings(items);
 
-    const res = await send({ type: 'getDomains' });
-    if (res.ok && Array.isArray(res.domains)) {
-      domainSet = new Set(res.domains);
+    if (await loadDomains()) {
       scan();
       observer.observe(document.documentElement, { childList: true, subtree: true });
     }

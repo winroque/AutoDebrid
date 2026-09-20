@@ -34,15 +34,19 @@ header {
   margin-bottom: 10px;
 }
 
-h1 { font-size: 18px; margin: 0; }
+h1 { font-size: 18px; margin: 0; white-space: nowrap; }
 h2 { font-size: 14px; margin: 0 0 6px; }
 
 a { color: var(--success); }
 
 #account-badge {
+  flex: 1;
+  min-width: 0;
+  margin-left: 12px;
   font-size: 12px;
   color: var(--muted);
   text-align: right;
+  overflow-wrap: anywhere;
 }
 
 input[type='password'],
@@ -118,6 +122,129 @@ button.primary:hover, .button.primary:hover { background: var(--accent-hover); }
   height: 18px;
   accent-color: var(--accent);
 }
+
+.settings label.row {
+  justify-content: space-between;
+}
+
+select {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  max-width: 60%;
+}
+
+.provider-choice {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.provider-choice label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.provider-choice input[type='radio'] { accent-color: var(--accent); }
+
+/* ---- hosters ---- */
+
+.hosters {
+  background: var(--card);
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+}
+
+.hosters summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hosters summary::-webkit-details-marker { display: none; }
+.hosters summary::before { content: '▸'; color: var(--muted); }
+.hosters[open] summary::before { content: '▾'; }
+
+.hosters .count { font-weight: 400; font-size: 12px; color: var(--muted); }
+.hosters .hint { font-size: 12px; color: var(--muted); margin: 6px 0; }
+
+.hosters-tools {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.hosters-tools input[type='text'] {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.hosters-tools button {
+  padding: 6px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+#hosters-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+#hosters-list li { padding: 2px 0; }
+
+#hosters-list label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  min-height: 24px;
+}
+
+#hosters-list input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+
+#hosters-list .hoster-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--border);
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.tag.down { background: #7f1d1d; color: #fecaca; }
 
 .page-links-header {
   display: flex;
