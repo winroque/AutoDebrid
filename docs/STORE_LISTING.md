@@ -92,7 +92,7 @@ using the user's own Real-Debrid account.
 |---|---|
 | `storage` | Stores the user's Real-Debrid API key and the extension's settings locally in browser storage. Nothing is stored on external servers. |
 | `clipboardWrite` | Copies the generated direct-download link to the clipboard so the user can paste it into a download manager. Only used after an explicit user action. |
-| `contextMenus` | Adds a "Unrestrict link" item to the right-click menu of links, as an alternative way to trigger the extension's single purpose. |
+| `contextMenus` | Adds a single "Unrestrict link with Real-Debrid" item to the right-click menu of links, as an alternative way to trigger the extension's single purpose. |
 | `https://api.real-debrid.com/*` | The extension's core function: calling the official Real-Debrid API to convert a link and to fetch the list of supported hosters. |
 | `<all_urls>` (host + content script) | The extension must scan link URLs on any page the user visits to detect links pointing to supported file hosters, because download links appear on arbitrary websites (forums, blogs, link-protector pages). Only link URLs are read, locally; no page content ever leaves the browser. A link is sent to the Real-Debrid API only when the user explicitly asks to convert it. |
 
@@ -116,9 +116,11 @@ https://winroque.github.io/AutoDebrid/privacy-policy.html
 ## Notas para os revisores / Notes to certification testers
 
 ```
+The UI follows the browser language (English by default; Portuguese for
+pt-BR / pt-PT browsers).
 Testing requires a (free or premium) Real-Debrid account API key from
 https://real-debrid.com/apitoken. Steps:
-1. Click the extension icon, paste the API key, press "Salvar e validar".
+1. Click the extension icon, paste the API key, press "Save and validate".
 2. Open any page containing a link to a supported hoster
    (e.g. a 1fichier.com or rapidgator.net file URL).
 3. A ⚡ badge appears next to the link; clicking the link or the badge converts

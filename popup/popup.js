@@ -4,11 +4,22 @@
 
 const $ = (sel) => document.querySelector(sel);
 
+// Textos traduzidos ficam em _locales/<idioma>/messages.json.
+const t = (key, subs) => chrome.i18n.getMessage(key, subs) || key;
+
+// Aplica as traduções aos elementos estáticos do HTML (data-i18n, data-i18n-title, data-i18n-placeholder).
+function localizeDocument() {
+  document.documentElement.lang = chrome.i18n.getUILanguage();
+  for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
+  for (const el of document.querySelectorAll('[data-i18n-title]')) el.title = t(el.dataset.i18nTitle);
+  for (const el of document.querySelectorAll('[data-i18n-placeholder]')) el.placeholder = t(el.dataset.i18nPlaceholder);
+}
+
 function send(msg) {
   return new Promise((resolve) => {
     chrome.runtime.sendMessage(msg, (res) => {
       if (chrome.runtime.lastError) resolve({ ok: false, error: chrome.runtime.lastError.message });
-      else resolve(res || { ok: false, error: 'Sem resposta' });
+      else resolve(res || { ok: false, error: t('errNoResponse') });
     });
   });
 }
@@ -17,7 +28,7 @@ function sendToTab(tabId, msg) {
   return new Promise((resolve) => {
     chrome.tabs.sendMessage(tabId, msg, (res) => {
       if (chrome.runtime.lastError) resolve({ ok: false, error: chrome.runtime.lastError.message });
-      else resolve(res || { ok: false, error: 'Sem resposta' });
+      else resolve(res || { ok: false, error: t('errNoResponse') });
     });
   });
 }
@@ -55,17 +66,17 @@ async function saveToken() {
   const token = $('#token-input').value.trim();
   const statusEl = $('#setup-status');
   if (!token) {
-    setStatus(statusEl, 'Cole a chave de API primeiro.', 'error');
+    setStatus(statusEl, t('setupEmpty'), 'error');
     return;
   }
-  setStatus(statusEl, 'Validando…');
+  setStatus(statusEl, t('validating'));
   const res = await send({ type: 'validateToken', token });
   if (!res.ok) {
     setStatus(statusEl, res.error, 'error');
     return;
   }
   await chrome.storage.sync.set({ apiToken: token });
-  setStatus(statusEl, 'Chave válida! Conta: ' + res.user.username, 'success');
+  setStatus(statusEl, t('tokenValid', [res.user.username]), 'success');
   showAccount(res.user);
   showMain();
   loadPageLinks();
@@ -75,7 +86,9 @@ function showAccount(user) {
   const badge = $('#account-badge');
   const premium = user.type === 'premium';
   const days = user.premium ? Math.floor(user.premium / 86400) : 0;
-  badge.textContent = user.username + (premium ? ` · premium (${days}d)` : ' · conta gratuita');
+  badge.textContent = premium
+    ? t('accountPremium', [user.username, String(days)])
+    : t('accountFree', [user.username]);
   badge.classList.remove('hidden');
 }
 
@@ -113,7 +126,6 @@ function showResult(result) {
 // ---------- links da página (mirrors) ----------
 
 let pageLinks = [];
-let activeTabId = null;
 
 async function loadPageLinks() {
   const statusEl = $('#links-status');
@@ -121,28 +133,27 @@ async function loadPageLinks() {
   const tryAll = $('#try-all');
   list.innerHTML = '';
   tryAll.classList.add('hidden');
-  setStatus(statusEl, 'Procurando links…');
+  setStatus(statusEl, t('searching'));
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab || tab.id == null) {
-    setStatus(statusEl, 'Nenhuma aba ativa encontrada.');
+    setStatus(statusEl, t('noActiveTab'));
     return;
   }
-  activeTabId = tab.id;
 
   const res = await sendToTab(tab.id, { type: 'collectLinks' });
   if (!res.ok) {
-    setStatus(statusEl, 'Não foi possível ler esta página (recarregue-a e tente de novo).');
+    setStatus(statusEl, t('cannotReadPage'));
     return;
   }
 
   pageLinks = res.links || [];
   if (pageLinks.length === 0) {
-    setStatus(statusEl, 'Nenhum link de hoster suportado nesta página.');
+    setStatus(statusEl, t('noLinks'));
     return;
   }
 
-  setStatus(statusEl, pageLinks.length + ' link(s) de hoster encontrados:');
+  setStatus(statusEl, t('linksFound', [String(pageLinks.length)]));
   if (pageLinks.length > 1) tryAll.classList.remove('hidden');
 
   for (const link of pageLinks) {
@@ -162,7 +173,7 @@ async function loadPageLinks() {
     const btn = document.createElement('button');
     btn.className = 'debrid-btn';
     btn.textContent = '⚡';
-    btn.title = 'Debridar este link';
+    btn.title = t('debridThis');
     btn.addEventListener('click', () => debridSingle(link, btn));
 
     li.append(info, btn);
@@ -178,7 +189,7 @@ async function debridSingle(link, btn) {
   btn.disabled = false;
   if (res.ok) {
     btn.textContent = '✅';
-    setStatus(statusEl, 'Link debridado com sucesso (copiado para a área de transferência).', 'success');
+    setStatus(statusEl, t('debridOk'), 'success');
     showResult(res.result);
   } else {
     btn.textContent = '❌';
@@ -191,20 +202,20 @@ async function tryAllMirrors() {
   const statusEl = $('#links-status');
   const tryAll = $('#try-all');
   tryAll.disabled = true;
-  tryAll.textContent = '⏳ Testando mirrors…';
-  setStatus(statusEl, 'Testando ' + pageLinks.length + ' mirror(s) em ordem…');
+  tryAll.textContent = t('tryAllWorking');
+  setStatus(statusEl, t('tryingMirrors', [String(pageLinks.length)]));
 
   const res = await send({ type: 'unrestrictFirst', links: pageLinks.map((l) => l.href) });
 
   tryAll.disabled = false;
-  tryAll.textContent = '🔁 Testar mirrors (usa o primeiro que funcionar)';
+  tryAll.textContent = t('tryAll');
 
   if (res.ok) {
     const skipped = (res.attempts || []).length;
     setStatus(statusEl,
       skipped > 0
-        ? `Mirror ${skipped + 1} funcionou (${res.result.host}); ${skipped} falharam antes.`
-        : `Primeiro mirror funcionou (${res.result.host}).`,
+        ? t('mirrorWorked', [String(skipped + 1), String(res.result.host), String(skipped)])
+        : t('firstMirrorWorked', [String(res.result.host)]),
       'success');
     showResult(res.result);
   } else {
@@ -218,6 +229,7 @@ async function tryAllMirrors() {
 // ---------- inicialização ----------
 
 async function init() {
+  localizeDocument();
   await bindOptions();
 
   $('#save-token').addEventListener('click', saveToken);
@@ -231,9 +243,9 @@ async function init() {
   $('#try-all').addEventListener('click', tryAllMirrors);
   $('#result-copy').addEventListener('click', () => {
     navigator.clipboard.writeText(lastDownload)
-      .then(() => { $('#result-copy').textContent = 'Copiado!'; })
-      .catch(() => { $('#result-copy').textContent = 'Falhou :('; });
-    setTimeout(() => { $('#result-copy').textContent = 'Copiar link'; }, 2000);
+      .then(() => { $('#result-copy').textContent = t('copied'); })
+      .catch(() => { $('#result-copy').textContent = t('copyFailed'); });
+    setTimeout(() => { $('#result-copy').textContent = t('copyLink'); }, 2000);
   });
 
   const { apiToken } = await chrome.storage.sync.get('apiToken');
@@ -250,7 +262,7 @@ async function init() {
   if (res.ok) {
     showAccount(res.user);
   } else {
-    setStatus($('#setup-status'), 'Sua chave parece inválida: ' + res.error, 'error');
+    setStatus($('#setup-status'), t('tokenInvalid', [res.error]), 'error');
     showSetup();
   }
 }

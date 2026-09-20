@@ -11,6 +11,7 @@ Extensão (Manifest V3) que converte links de hosters — 1fichier, Rapidgator, 
 - **Cópia automática**: o link debridado é copiado para a área de transferência.
 - A lista de hosters suportados é baixada da própria API do Real-Debrid e atualizada automaticamente (cache de 12h).
 - Se o debrid falhar, um aviso aparece e o clique seguinte abre o link original normalmente.
+- **Interface em português e inglês**: segue o idioma do navegador (pt-BR e pt-PT usam português; qualquer outro idioma usa inglês).
 
 ## Instalação
 
@@ -63,6 +64,7 @@ background.js     — service worker: chamadas à API do Real-Debrid, cache de h
 content.js        — detecção de links, badges, interceptação de cliques, coleta p/ popup
 content.css       — estilos do badge e do toast
 popup/            — interface: chave de API, opções, lista de mirrors, resultado
+_locales/         — textos traduzidos (en = padrão, pt_BR, pt_PT) usados via chrome.i18n
 icons/            — ícones gerados
 ```
 

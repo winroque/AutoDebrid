@@ -5,38 +5,17 @@
 const RD_BASE = 'https://api.real-debrid.com/rest/1.0';
 const DOMAINS_TTL_MS = 12 * 60 * 60 * 1000; // 12h de cache da lista de hosters
 
-// Mensagens amigáveis para os códigos de erro mais comuns da API.
-const RD_ERRORS = {
-  1: 'Parâmetro ausente na requisição',
-  2: 'Parâmetro inválido',
-  8: 'Chave de API inválida ou expirada',
-  9: 'Permissão negada (conta bloqueada ou não premium)',
-  10: 'Autenticação em duas etapas necessária',
-  11: 'Autenticação em duas etapas pendente',
-  12: 'Endereço IP não permitido',
-  13: 'Muitas tentativas — aguarde um pouco',
-  14: 'Chave de API inválida',
-  15: 'Sessão expirada',
-  16: 'Hoster temporariamente indisponível',
-  17: 'Hoster não disponível para contas gratuitas',
-  18: 'Limite de tráfego deste hoster atingido',
-  19: 'Arquivo indisponível no hoster',
-  20: 'Ação já feita anteriormente',
-  21: 'Muitos downloads ativos',
-  22: 'IP não autorizado para este download',
-  23: 'Tráfego esgotado',
-  24: 'Arquivo indisponível',
-  34: 'Muitas requisições — aguarde um pouco',
-  35: 'Conteúdo infringente',
-  36: 'Limite de hoster atingido',
-};
+// Textos traduzidos ficam em _locales/<idioma>/messages.json.
+const t = (key, subs) => chrome.i18n.getMessage(key, subs) || key;
 
+// Mensagens amigáveis para os códigos de erro mais comuns da API (chaves rdErr<código>).
 function friendlyError(data, status) {
-  if (data && typeof data.error_code === 'number' && RD_ERRORS[data.error_code]) {
-    return RD_ERRORS[data.error_code];
+  if (data && typeof data.error_code === 'number') {
+    const msg = chrome.i18n.getMessage('rdErr' + data.error_code);
+    if (msg) return msg;
   }
-  if (data && data.error) return `Real-Debrid: ${data.error}`;
-  return `Erro HTTP ${status} ao falar com o Real-Debrid`;
+  if (data && data.error) return t('errRdPrefix', [String(data.error)]);
+  return t('errHttp', [String(status)]);
 }
 
 async function getToken() {
@@ -91,7 +70,7 @@ async function getSupportedDomains(force = false) {
 
 async function unrestrict(link, password = '') {
   const token = await getToken();
-  if (!token) throw new Error('Configure sua chave de API do Real-Debrid no popup da extensão');
+  if (!token) throw new Error(t('errNoToken'));
   const body = { link };
   if (password) body.password = password;
   const data = await rdFetch('/unrestrict/link', { method: 'POST', body });
@@ -120,7 +99,7 @@ async function unrestrictFirst(links) {
       }
     }
   }
-  const err = new Error('Nenhum mirror funcionou');
+  const err = new Error(t('errNoMirror'));
   err.attempts = attempts;
   throw err;
 }
@@ -164,7 +143,7 @@ chrome.runtime.onInstalled.addListener(() => {
   if (!chrome.contextMenus) return;
   chrome.contextMenus.create({
     id: MENU_ID,
-    title: 'Debridar link com Real-Debrid',
+    title: t('menuUnrestrict'),
     contexts: ['link'],
   });
 });
