@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,44 +14,62 @@
 
   <!-- Tela de configuração da chave -->
   <section id="setup" class="hidden">
-    <p>Cole sua chave de API do Real-Debrid. Você encontra em
-      <a href="https://real-debrid.com/apitoken" target="_blank" rel="noopener">real-debrid.com/apitoken</a>.
+    <div class="provider-choice" id="provider-choice"></div>
+    <p><span id="setup-intro">Paste your API key. You can find it at</span>
+      <a id="key-link" href="https://real-debrid.com/apitoken" target="_blank" rel="noopener">real-debrid.com/apitoken</a>.
     </p>
-    <input type="password" id="token-input" placeholder="Chave de API" autocomplete="off">
-    <button id="save-token" class="primary">Salvar e validar</button>
+    <input type="password" id="token-input" data-i18n-placeholder="tokenPlaceholder" placeholder="API key" autocomplete="off">
+    <button id="save-token" class="primary" data-i18n="saveToken">Save and validate</button>
     <p id="setup-status" class="status"></p>
+    <button id="setup-cancel" class="link-button hidden" data-i18n="cancel">Cancel</button>
   </section>
 
   <!-- Tela principal -->
   <section id="main" class="hidden">
     <div class="settings">
-      <label><input type="checkbox" id="opt-intercept"> Debridar automaticamente ao clicar em links</label>
-      <label><input type="checkbox" id="opt-badges"> Mostrar botão ⚡ ao lado dos links</label>
-      <label><input type="checkbox" id="opt-newtab"> Abrir link debridado em nova aba</label>
+      <label class="row"><span data-i18n="serviceLabel">Service</span>
+        <select id="provider-select"></select>
+      </label>
+      <label><input type="checkbox" id="opt-intercept"> <span data-i18n="optIntercept">Unrestrict automatically when clicking links</span></label>
+      <label><input type="checkbox" id="opt-badges"> <span data-i18n="optBadges">Show ⚡ button next to links</span></label>
+      <label><input type="checkbox" id="opt-newtab"> <span data-i18n="optNewTab">Open unrestricted link in a new tab</span></label>
     </div>
+
+    <details id="hosters" class="hosters">
+      <summary><span data-i18n="hostersHeading">Supported hosters</span> <span id="hosters-count" class="count"></span></summary>
+      <p class="hint" data-i18n="hostersHint">Disabled hosters are left alone: no ⚡ badge and no click interception.</p>
+      <div class="hosters-tools">
+        <input type="text" id="hosters-filter" data-i18n-placeholder="hostersFilter" placeholder="Filter…">
+        <button id="hosters-all" data-i18n="enableAll">Enable all</button>
+        <button id="hosters-none" data-i18n="disableAll">Disable all</button>
+        <button id="hosters-refresh" data-i18n-title="refreshTitle" title="Reload list">↻</button>
+      </div>
+      <p id="hosters-status" class="status"></p>
+      <ul id="hosters-list"></ul>
+    </details>
 
     <div class="page-links">
       <div class="page-links-header">
-        <h2>Links nesta página</h2>
-        <button id="refresh-links" title="Recarregar lista">↻</button>
+        <h2 data-i18n="linksHeading">Links on this page</h2>
+        <button id="refresh-links" data-i18n-title="refreshTitle" title="Reload list">↻</button>
       </div>
       <p id="links-status" class="status"></p>
-      <button id="try-all" class="primary hidden">🔁 Testar mirrors (usa o primeiro que funcionar)</button>
+      <button id="try-all" class="primary hidden" data-i18n="tryAll">🔁 Try mirrors (uses the first one that works)</button>
       <ul id="links-list"></ul>
     </div>
 
     <div id="result" class="result hidden">
-      <h2>✅ Link pronto</h2>
+      <h2 data-i18n="resultHeading">✅ Link ready</h2>
       <p id="result-name" class="result-name"></p>
       <p id="result-meta" class="result-meta"></p>
       <div class="result-actions">
-        <a id="result-open" class="button primary" target="_blank" rel="noopener">Abrir / Baixar</a>
-        <button id="result-copy">Copiar link</button>
+        <a id="result-open" class="button primary" target="_blank" rel="noopener" data-i18n="openDownload">Open / Download</a>
+        <button id="result-copy" data-i18n="copyLink">Copy link</button>
       </div>
     </div>
 
     <footer>
-      <button id="change-token" class="link-button">Alterar chave de API</button>
+      <button id="change-token" class="link-button" data-i18n="changeToken">Change API key</button>
     </footer>
   </section>
 

@@ -21,12 +21,15 @@
 
   // ---------- utilidades ----------
 
+  // Textos traduzidos ficam em _locales/<idioma>/messages.json.
+  const t = (key, subs) => chrome.i18n.getMessage(key, subs) || key;
+
   function send(msg) {
     return new Promise((resolve) => {
       try {
         chrome.runtime.sendMessage(msg, (res) => {
           if (chrome.runtime.lastError) resolve({ ok: false, error: chrome.runtime.lastError.message });
-          else resolve(res || { ok: false, error: 'Sem resposta' });
+          else resolve(res || { ok: false, error: t('errNoResponse') });
         });
       } catch (e) {
         resolve({ ok: false, error: e.message });
@@ -83,15 +86,15 @@
 
   async function debridAndOpen(anchor, badge) {
     const href = anchor.href;
-    if (badge) { badge.textContent = '⏳'; badge.title = 'Debridando…'; }
-    showToast('⚡ Debridando link…');
+    if (badge) { badge.textContent = '⏳'; badge.title = t('badgeWorking'); }
+    showToast(t('toastWorking'));
 
     const res = await send({ type: 'unrestrict', link: href });
 
     if (res.ok) {
       const { download, filename } = res.result;
-      if (badge) { badge.textContent = '✅'; badge.title = 'Link debridado'; }
-      showToast('✅ ' + (filename || 'Link pronto') + ' — abrindo download', 'success');
+      if (badge) { badge.textContent = '✅'; badge.title = t('badgeDone'); }
+      showToast(t('toastSuccess', [filename || t('linkReady')]), 'success');
       try { navigator.clipboard.writeText(download).catch(() => {}); } catch { /* sem gesto ativo */ }
       if (settings.newTab) window.open(download, '_blank');
       else location.href = download;
@@ -99,7 +102,7 @@
       if (badge) { badge.textContent = '❌'; badge.title = res.error; }
       // Permite que o próximo clique passe direto para o link original.
       anchor.setAttribute('data-autodebrid-bypass', '1');
-      showToast('❌ ' + res.error + ' — clique de novo para abrir o link original, ou use o popup para testar os mirrors.', 'error');
+      showToast(t('toastError', [res.error]), 'error');
       setTimeout(() => anchor.removeAttribute('data-autodebrid-bypass'), 15000);
     }
   }
@@ -120,7 +123,7 @@
       const badge = document.createElement('span');
       badge.className = BADGE_CLASS;
       badge.textContent = '⚡';
-      badge.title = 'Debridar com Real-Debrid (' + domain + ')';
+      badge.title = t('badgeTitle', [domain]);
       badge.addEventListener('click', (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
@@ -210,16 +213,30 @@
     if (typeof items.intercept === 'boolean') settings.intercept = items.intercept;
     if (typeof items.badges === 'boolean') settings.badges = items.badges;
     if (typeof items.newTab === 'boolean') settings.newTab = items.newTab;
-    hasToken = !!(items.apiToken && items.apiToken.trim());
   }
 
-  chrome.storage.onChanged.addListener((changes, area) => {
+  // O service worker é a fonte da verdade: devolve só os domínios habilitados
+  // do serviço de debrid ativo e diz se há chave configurada para ele.
+  async function loadDomains() {
+    const res = await send({ type: 'getDomains' });
+    if (!res.ok || !Array.isArray(res.domains)) return false;
+    domainSet = new Set(res.domains);
+    hasToken = !!res.hasToken;
+    return true;
+  }
+
+  // Mudanças que alteram quais links são "suportados": serviço, chaves, hosters desligados.
+  const DOMAIN_KEYS = ['provider', 'apiToken', 'torboxToken', 'disabledHosts'];
+
+  chrome.storage.onChanged.addListener(async (changes, area) => {
     if (area !== 'sync') return;
     const flat = {};
     for (const [k, v] of Object.entries(changes)) flat[k] = v.newValue;
     const badgesBefore = settings.badges;
     applyStoredSettings(flat);
-    if (badgesBefore !== settings.badges) {
+    const domainsChanged = DOMAIN_KEYS.some((k) => k in changes);
+    if (domainsChanged) await loadDomains();
+    if (domainsChanged || badgesBefore !== settings.badges) {
       clearBadges();
       scan();
     }
@@ -228,12 +245,10 @@
   // ---------- inicialização ----------
 
   async function init() {
-    const items = await chrome.storage.sync.get(['apiToken', 'intercept', 'badges', 'newTab']);
+    const items = await chrome.storage.sync.get(['intercept', 'badges', 'newTab']);
     applyStoredSettings(items);
 
-    const res = await send({ type: 'getDomains' });
-    if (res.ok && Array.isArray(res.domains)) {
-      domainSet = new Set(res.domains);
+    if (await loadDomains()) {
       scan();
       observer.observe(document.documentElement, { childList: true, subtree: true });
     }
